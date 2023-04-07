@@ -1,0 +1,1 @@
+{"name": "Counter", "methods": [{"name": "increment", "args": [], "returns": {"type": "void"}}, {"name": "decrement", "args": [], "returns": {"type": "void"}}], "networks": {}}

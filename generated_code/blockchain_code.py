@@ -25,8 +25,8 @@ handle_delete = Seq(
 
 opt_in = Seq(
     [
-        If(App.localGet(Int(0), Bytes("counter")) == Int(0), ).Then(Return(Int(1)),
-                                                                    )
+        If(App.localGet(Int(0), Bytes("rolls")) < Int(10), ).Then(Return(Int(1)),
+                                                                  )
     ]
 )
 
@@ -39,7 +39,7 @@ close_out = Seq(
 
 router = Router(
     # Name of the contract
-    "Counter",
+    "Casino",
     # What to do for each on-complete type when no arguments are passed (bare call)
     BareCallActions(
         # On create only, just approve
@@ -54,21 +54,11 @@ router = Router(
 
 
 @router.method
-def increment():
+def roll():
 
     return Seq(
-        App.localPut(Int(0), Bytes("counter"), App.localGet(
-            Int(0), Bytes("counter"))+Int(1)),
-
-    )
-
-
-@router.method
-def decrement():
-
-    return Seq(
-        App.localPut(Int(0), Bytes("counter"), App.localGet(
-            Int(0), Bytes("counter"))-Int(1)),
+        App.localPut(Int(0), Bytes("rolls"), App.localGet(
+            Int(0), Bytes("rolls"))+Int(1)),
 
     )
 
@@ -82,8 +72,8 @@ close_out = Seq(
 
 opt_in = Seq(
     [
-        If(App.localGet(Int(0), Bytes("counter")) == Int(0), ).Then(Return(Int(1)),
-                                                                    )
+        If(App.localGet(Int(0), Bytes("rolls")) < Int(10), ).Then(Return(Int(1)),
+                                                                  )
     ]
 )
 

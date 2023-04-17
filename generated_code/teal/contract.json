@@ -1,1 +1,1 @@
-{"name": "Counter", "methods": [{"name": "increment", "args": [], "returns": {"type": "void"}}, {"name": "decrement", "args": [], "returns": {"type": "void"}}], "networks": {}}
+{"name": "Casino", "methods": [{"name": "roll", "args": [], "returns": {"type": "void"}}], "networks": {}}

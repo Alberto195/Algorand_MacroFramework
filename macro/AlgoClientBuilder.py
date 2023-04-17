@@ -1,20 +1,23 @@
+import json
+
 from algosdk import account, mnemonic
+from algosdk.abi import Contract
 from algosdk.atomic_transaction_composer import *
 from macro.Mode import Mode
 
 
 class AlgoClientBuilder:
 
-    def __init__(self, creator_mnemonic, algod_address, algod_token):
+    def __init__(self, creator_mnemonic, wallet_address, algod_address, algod_token, app_id=0):
         self.algod_client = None
-        self.app_id = 0
-
+        self.app_id = app_id
         self.creator_mnemonic = creator_mnemonic
+        self.wallet_address = wallet_address
         self.algod_address = algod_address
         self.algod_token = algod_token
 
     def read_local_state(self):
-        results = self.algod_client.account_info(self.algod_address)
+        results = self.algod_client.account_info(self.wallet_address)
         for local_state in results["apps-local-state"]:
             if local_state["id"] == self.app_id:
                 if "key-value" not in local_state:
@@ -24,7 +27,7 @@ class AlgoClientBuilder:
 
     # read app global state
     def read_global_state(self):
-        results = self.algod_client.account_info(self.algod_address)
+        results = self.algod_client.account_info(self.wallet_address)
         apps_created = results["created-apps"]
         for app in apps_created:
             if app["id"] == self.app_id:
@@ -39,9 +42,9 @@ class AlgoClientBuilder:
             formatted = self.read_local_state()
 
         val = None
-        for key, value in formatted:
+        for key in formatted:
             if key == variable_name:
-                val = value
+                val = formatted[key]
                 break
         return val
 
@@ -111,14 +114,20 @@ class AlgoClientBuilder:
         return app_id
 
     # call application
-    def call_app(self, client, private_key, contract, method_name, method_args: list):
+    def call_app(self, method_name, method_args: list):
+        with open("./generated_code/teal/contract.json", "r") as f:
+            js = json.load(f)
+            contract = Contract.undictify(js)
+
+        # define private keys
+        private_key = self.get_private_key_from_mnemonic(self.creator_mnemonic)
         # get sender address
         sender = account.address_from_private_key(private_key)
         # create a Signer object
         signer = AccountTransactionSigner(private_key)
 
         # get node suggested parameters
-        sp = client.suggested_params()
+        sp = self.algod_client.suggested_params()
 
         # Create an instance of AtomicTransactionComposer
         atc = AtomicTransactionComposer()
@@ -132,19 +141,21 @@ class AlgoClientBuilder:
         )
 
         # send transaction
-        results = atc.execute(client, 2)
+        results = atc.execute(self.algod_client, 2)
 
         # wait for confirmation
         print("TXID: ", results.tx_ids[0])
         print("Result confirmed in round: {}".format(results.confirmed_round))
 
-    def init_algo_client(self, local_ints, local_bytes, global_ints, global_bytes):
+    def init_algo_client(self):
         # initialize an algodClient
         self.algod_client = algod.AlgodClient(self.algod_token, self.algod_address)
 
+    def init_app(self, local_ints, local_bytes, global_ints, global_bytes):
         # define private keys
         creator_private_key = self.get_private_key_from_mnemonic(self.creator_mnemonic)
 
+        # configure schema
         global_schema = transaction.StateSchema(global_ints, global_bytes)
         local_schema = transaction.StateSchema(local_ints, local_bytes)
 

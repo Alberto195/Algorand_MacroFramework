@@ -4,6 +4,7 @@ This Algorand MacroFramework is a Final Year Project for University of Malta. Th
 the goal of my studies. The main goal was to see if the appraoch is viable in any case.
 I hope you will have enough patience to test out my project and provide me with some feedback using a google form with some questions, that takes around
 10 minutes to complete. (For more detail see the Quiz section)
+link: https://forms.gle/oDbeWov6QMZreVbk7
 
 ## Short Abstract Idea
 
@@ -81,5 +82,5 @@ experience using this framework.
 It would mean a lot if you would take a quiz to give me feedback on my project. The quiz is fully anonymous, but the data collected will be used in my
 FYP diploma to help me evaluate the proposed approach and system.
 
-link: 
+link: https://forms.gle/oDbeWov6QMZreVbk7
 

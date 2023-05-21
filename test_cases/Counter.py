@@ -1,13 +1,7 @@
-import time
-
-from pyteal import Global, Txn
-
 from macro.Annotations import *
 from macro.Mode import Mode
 from macro.Wrappers import XWrapper
-
-test_list = [1, 2]
-test_dict = {"dict": 0}
+from main import algo_client
 
 @XAll
 class Counter:
@@ -24,11 +18,14 @@ class Counter:
     def decrement(self):
         self.counter.set_x(self.counter.get_x() - 1)
 
-    @XOnBlockchain
-    def on_closeout(self):
-        pass
+    @XOnServer
+    def increment(self):
+        algo_client.call_app("increment", [])
 
-    @XOnBlockchain
-    def on_optin(self):
-        if self.counter.get_x() == 0:
-            pass
+    @XOnServer
+    def decrement(self):
+        algo_client.call_app("decrement", [])
+
+    @XOnServer
+    def get_counter(self):
+        return self.counter.get_x()

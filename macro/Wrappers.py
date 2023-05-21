@@ -11,16 +11,17 @@ class XWrapper:
             value: The value passed to wrapper class, can be of any type.
             mode: Mode.GLOBAL - variable is global, Mode.LOCAL - variable is local. Defaults to global variable
             platform: Platform.BLOCKCHAIN - variable will be located on blockchain only,
-                      Platform.ALL - variable will be located on both platforms.
-                      Defaults to Platform.BLOCKCHAIN.
+                      Platform.ALL - variable will be located on both platforms. Defaults to Platform.BLOCKCHAIN.
         """
 
         self._x = value
         self._mode = mode
         self.platform = platform
+        self.index = 0
 
     def set_x(self, value):
         self._x = value
 
-    def get_x(self):
+    def get_x(self, index=0):
+        self.index = index
         return self._x

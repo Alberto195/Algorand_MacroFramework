@@ -25,21 +25,27 @@ handle_delete = Seq(
 
 opt_in = Seq(
     [
-        If(App.localGet(Int(0), Bytes("rolls")) < Int(10), ).Then(Return(Int(1)),
-                                                                  )
+        Assert(App.localGet(Int(0), Bytes("counter")) > Int(0), ),
+        If(Global.round() > Int(10000), ).Then(Return(Int(1)),
+                                               )
     ]
 )
 
 close_out = Seq(
     [
-        Return(Int(1)),
+        If(App.localGet(Int(0), Bytes("counter")) < Int(10), ).Then(App.localPut(Int(0), Bytes("counter"), Int(0)),
+                                                                    If(App.localPut(Int(0), Bytes("counter"), Int(0)),
+                                                                       ).Then(Return(Int(1)),
+                                                                              )).ElseIf(Or(And(App.localGet(Int(0), Bytes("counter")) == Int(11), Global.round() > Int(10000), ),	App.localGet(Int(0), Bytes("counter")) == Int(11), ),).Then(App.localPut(Int(0), Bytes("counter"), Int(5)),
+                                                                                                                                                                                                                                              ).Else(App.localPut(Int(0), Bytes("counter"), Int(2)),
+                                                                                                                                                                                                                                                     ),
 
     ]
 )
 
 router = Router(
     # Name of the contract
-    "Casino",
+    "Counter",
     # What to do for each on-complete type when no arguments are passed (bare call)
     BareCallActions(
         # On create only, just approve
@@ -54,28 +60,72 @@ router = Router(
 
 
 @router.method
-def roll():
+def increment():
 
     return Seq(
-        App.localPut(Int(0), Bytes("rolls"), App.localGet(
-            Int(0), Bytes("rolls"))+Int(1)),
+        App.localPut(Int(0), Bytes("counter"), App.localGet(
+            Int(0), Bytes("counter"))+Int(1)),
+
+    )
+
+
+@router.method
+def decrement():
+
+    return Seq(
+        App.localPut(Int(0), Bytes("counter"), App.localGet(
+            Int(0), Bytes("counter"))-Int(1)),
 
     )
 
 
 close_out = Seq(
     [
-        Return(Int(1)),
+        If(App.localGet(Int(0), Bytes("counter")) < Int(10), ).Then(App.localPut(Int(0), Bytes("counter"), Int(0)),
+                                                                    If(App.localPut(Int(0), Bytes("counter"), Int(0)),
+                                                                       ).Then(Return(Int(1)),
+                                                                              )).ElseIf(Or(And(App.localGet(Int(0), Bytes("counter")) == Int(11), Global.round() > Int(10000), ),	App.localGet(Int(0), Bytes("counter")) == Int(11), ),).Then(App.localPut(Int(0), Bytes("counter"), Int(5)),
+                                                                                                                                                                                                                                              ).Else(App.localPut(Int(0), Bytes("counter"), Int(2)),
+                                                                                                                                                                                                                                                     ),
 
     ]
 )
 
 opt_in = Seq(
     [
-        If(App.localGet(Int(0), Bytes("rolls")) < Int(10), ).Then(Return(Int(1)),
-                                                                  )
+        Assert(App.localGet(Int(0), Bytes("counter")) > Int(0), ),
+        If(Global.round() > Int(10000), ).Then(Return(Int(1)),
+                                               )
     ]
 )
+
+
+@router.method
+def match_test():
+
+    return Seq(
+        Cond(
+            [Global.group_size() == Int(0), Seq([Txn.sender(), Return(Int(1))])],
+            [Global.group_size() == Int(1), Return(Int(1))]
+        )
+    )
+
+
+@router.method
+def nullify():
+
+    return Seq(
+        Assert(App.localGet(Int(0), Bytes("counter")) > Int(0), ),
+        If(App.localGet(Int(0), Bytes("counter")) == Int(1), ).Then(Break(),
+                                                                    ).Else(Continue(),
+                                                                           ),
+        While(App.localGet(Int(0), Bytes("counter")) > Int(0), ).Do(If(App.localGet(Int(0), Bytes("counter")) == Int(1), ).Then(Break(),
+                                                                                                                                ).Else(Continue(),
+                                                                                                                                       ),
+                                                                    ),
+
+    )
+
 
 if __name__ == '__main__':
     # Compile the program

@@ -3,10 +3,20 @@ import json
 from algosdk import account, mnemonic
 from algosdk.abi import Contract
 from algosdk.atomic_transaction_composer import *
+from algosdk.transaction import Transaction, PaymentTxn
+
 from macro.Mode import Mode
 
 
 class AlgoClientBuilder:
+    """Builder for Algorand API Client, contains useful utilitiy functions.
+    Args:
+        creator_mnemonic - Creator mnemonic (str).
+        wallet_address - Wallet address (str).
+        algod_address - Algorand address (str).
+        algod_token - Algorand API token (str).
+        app_id - Application Id (int).
+    """
 
     def __init__(self, creator_mnemonic, wallet_address, algod_address, algod_token, app_id=0):
         self.algod_client = None
@@ -114,7 +124,7 @@ class AlgoClientBuilder:
         return app_id
 
     # call application
-    def call_app(self, method_name, method_args: list):
+    def call_app(self, method_name, method_args: list, receiver="", amt=0):
         with open("./generated_code/teal/contract.json", "r") as f:
             js = json.load(f)
             contract = Contract.undictify(js)
@@ -131,6 +141,14 @@ class AlgoClientBuilder:
 
         # Create an instance of AtomicTransactionComposer
         atc = AtomicTransactionComposer()
+
+        if receiver != "":
+            p_tx = PaymentTxn(sender, sp, receiver, amt)
+            final_tx = TransactionWithSigner(p_tx, signer)
+            # add payment tx
+            atc.add_transaction(final_tx)
+
+        # add payment call
         atc.add_method_call(
             app_id=self.app_id,
             method=contract.get_method_by_name(method_name),
@@ -139,7 +157,6 @@ class AlgoClientBuilder:
             signer=signer,
             method_args=method_args,
         )
-
         # send transaction
         results = atc.execute(self.algod_client, 2)
 
@@ -151,7 +168,7 @@ class AlgoClientBuilder:
         # initialize an algodClient
         self.algod_client = algod.AlgodClient(self.algod_token, self.algod_address)
 
-    def init_app(self, local_ints, local_bytes, global_ints, global_bytes):
+    def init_and_create_app(self, local_ints, local_bytes, global_ints, global_bytes):
         # define private keys
         creator_private_key = self.get_private_key_from_mnemonic(self.creator_mnemonic)
 

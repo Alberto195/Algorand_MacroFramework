@@ -13,7 +13,7 @@ algo_client = AlgoClientBuilder("mnemonic",
 
 if __name__ == '__main__':
     start = time.time_ns()
-    path_to_file = './test_cases/Casino.py'
+    path_to_file = './test_cases/Stupid_counter.py'
     with open(path_to_file, 'r') as file:
         data = file.read()
     parse_and_generate_code(data)

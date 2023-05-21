@@ -109,7 +109,7 @@ class PyTealCodeGenerator(ast.NodeVisitor):
         args = ""
         if hasattr(node, "bases"):
             for arg in node.bases:
-                args += str(arg.id) + ", "
+                args += self.visit(arg) + ", "
             args = args[:-2]
 
         if self.current_scope == "XAll" or self.current_scope == "XOnBlockchain":
@@ -500,6 +500,16 @@ class PyTealCodeGenerator(ast.NodeVisitor):
         if self.current_scope == "XOnServer":
             return left + ops + right
 
+    def visit_UnaryOp(self, node):
+        s = self.visit(node.op)
+        return s + self.visit(node.operand)
+
+    def visit_USub(self, node):
+        return "-"
+
+    def visit_UAdd(self, node):
+        return "+"
+
     def visit_Lt(self, node):
         return "<"
 
@@ -531,6 +541,20 @@ class PyTealCodeGenerator(ast.NodeVisitor):
             elif self.current_scope == "XOnServer":
                 self.code += tabs + "pass\n"
 
+    def visit_Subscript(self, node):
+        tabs = tab * self.tab_counter
+        self.current_scope = "XOnServer"
+        index = self.visit(node.slice)
+        self.current_scope = "XOnBlockchain"
+        value = self.visit(node.value)
+        if self.to_buffer or self.is_args:
+            return f"{value}[{index}]"
+        else:
+            if self.current_scope == "XOnBlockchain":
+                self.blockchain_methods_inner += f"{value}[{index}],\n"
+            elif self.current_scope == "XOnServer":
+                self.code += tabs + f"{value}[{index}]\n"
+
     def visit_Call(self, node):
         buffer = ""
         for stmt in node.args:
@@ -545,6 +569,8 @@ class PyTealCodeGenerator(ast.NodeVisitor):
             func_name = self.visit(node.func)
             # hard coding
             var_name = func_name.split(".")[0]
+            if var_name == "self":
+                var_name = func_name.split(".")[1]
 
             if func_name.find('get_x') != -1:
                 if self.is_args or self.to_buffer:
@@ -594,12 +620,19 @@ class PyTealCodeGenerator(ast.NodeVisitor):
                     buffer += code_converter.unix_time(self.is_args, True)
                 else:
                     self.blockchain_methods_inner += code_converter.unix_time(self.is_args, False)
-            elif func_name.find('Txn') != -1 or func_name.find('Global') != -1 \
+            elif func_name.find('Txn') != -1 or func_name.find('Global') != -1 or func_name.find('Gtxn') != -1\
                     or func_name.find('get') != -1 or func_name.find('set') != -1:
                 if self.is_args:
                     buffer += f"{func_name}({self.method_arg_buffer})"
                 elif self.to_buffer:
                     buffer += f"{func_name}({self.method_arg_buffer}),\n"
+                else:
+                    self.blockchain_methods_inner += f"{func_name}({self.method_arg_buffer}),\n"
+            else:
+                if self.is_args:
+                    buffer += f"{var_name}({self.method_arg_buffer})"
+                elif self.to_buffer:
+                    buffer += f"{var_name}({self.method_arg_buffer}),\n"
                 else:
                     self.blockchain_methods_inner += f"{func_name}({self.method_arg_buffer}),\n"
 
@@ -679,6 +712,9 @@ class PyTealCodeGenerator(ast.NodeVisitor):
 
     def visit_Div(self, node):
         return "//"
+
+    def visit_Mod(self, node):
+        return "%"
 
     def visit_In(self, node):
         return " in "
@@ -877,12 +913,11 @@ class PyTealCodeGenerator(ast.NodeVisitor):
 
     def visit_Dict(self, node):
         string = ""
-        if self.current_scope == "XOnServer" or self.current_scope == "XAll":
-            for i in range(len(node.values)):
-                key = self.visit(node.keys[i])
-                value = self.visit(node.values[i])
-                string += f"{key}: {value}, "
-            string = string[:-2]
+        for i in range(len(node.values)):
+            key = self.visit(node.keys[i])
+            value = self.visit(node.values[i])
+            string += f"{key}: {value}, "
+        string = string[:-2]
         return "{" + string + "}"
 
     def visit_AugAssign(self, node):

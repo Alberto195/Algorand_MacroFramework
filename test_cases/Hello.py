@@ -1,5 +1,7 @@
-from macro.Annotations import XOnBlockchain, XAll
+from macro.Annotations import *
 from pyteal import *
+
+from main import algo_client
 
 
 @XAll
@@ -9,10 +11,7 @@ class Hello:
     def hello(self, name: abi.String, output: abi.String):
         output.set("Hello" + " " + name.get())
 
-    @XOnBlockchain
-    def on_closeout(self):
-        pass
-
-    @XOnBlockchain
-    def on_optin(self):
-        pass
+    @XOnServer
+    def print_hello(self, name):
+        hello_text = algo_client.call_app("hello", [name])
+        print(hello_text)

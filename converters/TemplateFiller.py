@@ -68,7 +68,7 @@ opt_in = Seq(
             self.close_out = """
 close_out = Seq(
     [
-        Return(Int(0)),
+        Return(Int(1)),
     ]
 )        
 """
@@ -76,7 +76,7 @@ close_out = Seq(
             self.opt_in = """
 opt_in = Seq(
     [
-        Return(Int(0)),
+        Return(Int(1)),
     ]
 )        
 """

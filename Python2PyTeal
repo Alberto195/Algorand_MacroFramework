@@ -1,0 +1,27 @@
+PYTHON - PYTEAL
+
+XWrapper is described in overleaf
+
+match-case - Cond
+
+Python assert - Assert()
+
+Python for loop - NO IMPLEMENTATION
+
+Python While loop - PyTeal While()
+
+pass - Return(1)
+
+continue - Continue()
+
+If-then-else-statement - If().Then().ElseIf().Then().Else()
+
+break - Break()
+
+assert - Assert()
+
+NO PYTEAL BOX IMPLEMENTATION
+
+ALL PYTEAL TYPES ARE IMPLEMENTED
+
+BASIS OPERATION FOR INT AND BYTES ARE ALSO IMPLEMENTED

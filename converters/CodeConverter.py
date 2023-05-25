@@ -50,10 +50,6 @@ class CodeConverter:
             string = string + ",\n"
         return string
 
-    def unix_time(self, is_args, to_buffer):
+    def unix_time(self):
         string = f"Global.round()"
-        # if to_buffer:
-        #     return string
-        # if not is_args:
-        #     string = "\t" + string + ",\n"
         return string
